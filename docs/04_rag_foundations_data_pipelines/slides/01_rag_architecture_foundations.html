@@ -9,7 +9,7 @@
 <link href="01_rag_architecture_foundations_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.8.26">
 
-  <meta name="dcterms.date" content="2026-03-14">
+  <meta name="dcterms.date" content="2026-04-20">
   <title>RAG Architecture &amp; Foundations</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -138,7 +138,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-03-14</p>
+  <p class="date">2026-04-20</p>
 </section>
 <section>
 <section id="a.-the-rag-paradigm" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
@@ -440,14 +440,16 @@
 <p></p><figure class=""><p></p>
 <div>
 <pre class="mermaid mermaid-js">flowchart LR
-    A[User Query] --&gt; B[Query Embedding]
-    B --&gt; C[Vector Store&lt;br/&gt;Retrieval]
-    C --&gt; D[Top-K Context&lt;br/&gt;Chunks]
-    D --&gt; E[Orchestrator&lt;br/&gt;Formats Prompt]
-    E --&gt; F[LLM Generator]
-    F --&gt; G[Answer +&lt;br/&gt;Source Citations]
+    subgraph online["Query Pipeline (Online — per request)"]
+        A[User Query] --&gt; B[Query Embedding]
+        B --&gt; C[Vector Store&lt;br/&gt;Retrieval]
+        C --&gt; D[Top-K Context&lt;br/&gt;Chunks]
+        D --&gt; E[Orchestrator&lt;br/&gt;Formats Prompt]
+        E --&gt; F[LLM Generator]
+        F --&gt; G[Answer +&lt;br/&gt;Source Citations]
+    end
 
-    subgraph "Knowledge Base (Offline)"
+    subgraph offline["Indexing Pipeline (Offline — run once)"]
         H[Raw Documents] --&gt; I[Chunking &amp;&lt;br/&gt;Cleaning]
         I --&gt; J[Generate&lt;br/&gt;Embeddings]
         J --&gt; K[(Vector Store)]

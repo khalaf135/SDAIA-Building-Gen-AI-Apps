@@ -9,7 +9,7 @@
 <link href="02_patterns_of_collaboration_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.8.26">
 
-  <meta name="dcterms.date" content="2026-03-14">
+  <meta name="dcterms.date" content="2026-04-20">
   <title>Patterns of Collaboration</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -204,7 +204,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-03-14</p>
+  <p class="date">2026-04-20</p>
 </section>
 <section>
 <section id="a.-why-multi-agent" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
@@ -564,47 +564,74 @@
 <h1>D. Parallelism</h1>
 <p>Running independent tasks concurrently</p>
 </section>
+<section id="the-mental-model-one-chef-no-idle-time" class="slide level2">
+<h2>The Mental Model: One Chef, No Idle Time</h2>
+<p>There is only <strong>one chef</strong> (the Event Loop — async is single-threaded):</p>
+<ul>
+<li class="fragment"><strong>Sequential</strong> — Chef puts a dish in the oven, then <strong>stands and stares at the oven</strong> until it’s done. Only then starts the next dish.</li>
+<li class="fragment"><strong>Async</strong> — Chef puts a dish in the oven, and while it’s cooking (waiting for the API response), <strong>immediately starts prepping the next dish</strong>. No idle time.</li>
+</ul>
+<div class="fragment">
+<blockquote>
+<p><code>await</code> is the moment the chef puts something in the oven and turns to the next task.<br>
+The chef never changes — <strong>one thread, no idle waiting</strong>.</p>
+</blockquote>
+</div>
+</section>
 <section id="the-sequential-problem" class="slide level2">
 <h2>The Sequential Problem</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="co"># Sequential: 6+ seconds for 3 independent topics</span></span>
-<span id="cb2-2"><a href=""></a>result_1 <span class="op">=</span> researcher.run(<span class="st">"Research topic A"</span>)   <span class="co"># 2s</span></span>
-<span id="cb2-3"><a href=""></a>result_2 <span class="op">=</span> researcher.run(<span class="st">"Research topic B"</span>)   <span class="co"># 2s</span></span>
-<span id="cb2-4"><a href=""></a>result_3 <span class="op">=</span> researcher.run(<span class="st">"Research topic C"</span>)   <span class="co"># 2s</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href=""></a>result_1 <span class="op">=</span> call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic A"</span>)  <span class="co"># ← blocks until done</span></span>
+<span id="cb2-3"><a href=""></a>result_2 <span class="op">=</span> call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic B"</span>)  <span class="co"># ← only starts after A</span></span>
+<span id="cb2-4"><a href=""></a>result_3 <span class="op">=</span> call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic C"</span>)  <span class="co"># ← only starts after B</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="co"># Parallel: ~2 seconds for all 3 topics</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="co"># Parallel: ~2 seconds — all 3 topics start at the same time</span></span>
 <span id="cb3-2"><a href=""></a>results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(</span>
-<span id="cb3-3"><a href=""></a>    run_agent_async(researcher, <span class="st">"Research topic A"</span>),</span>
-<span id="cb3-4"><a href=""></a>    run_agent_async(researcher, <span class="st">"Research topic B"</span>),</span>
-<span id="cb3-5"><a href=""></a>    run_agent_async(researcher, <span class="st">"Research topic C"</span>),</span>
+<span id="cb3-3"><a href=""></a>    call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic A"</span>),  <span class="co"># ← starts immediately</span></span>
+<span id="cb3-4"><a href=""></a>    call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic B"</span>),  <span class="co"># ← starts immediately</span></span>
+<span id="cb3-5"><a href=""></a>    call_specialist(<span class="st">"researcher"</span>, <span class="st">"Topic C"</span>),  <span class="co"># ← starts immediately</span></span>
 <span id="cb3-6"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>3x speedup</strong> with zero quality loss.</p>
+<p><strong>3x speedup</strong> — same quality, a third of the time.</p>
 </div>
 </section>
 <section id="asyncio.gather-in-practice" class="slide level2 smaller">
 <h2>asyncio.gather in Practice</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="co"># 1. Native Async (Preferred)</span></span>
-<span id="cb4-2"><a href=""></a><span class="co"># Agents are coroutines and don't block the loop</span></span>
-<span id="cb4-3"><a href=""></a>results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(</span>
-<span id="cb4-4"><a href=""></a>    <span class="op">*</span>[<span class="va">self</span>._run_agent_with_retry(task) <span class="cf">for</span> task <span class="kw">in</span> research_tasks]</span>
-<span id="cb4-5"><a href=""></a>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="co"># From the lab: acompletion is natively async — no extra setup needed</span></span>
+<span id="cb4-2"><a href=""></a><span class="im">import</span> asyncio</span>
+<span id="cb4-3"><a href=""></a><span class="im">from</span> specialists <span class="im">import</span> call_specialist</span>
+<span id="cb4-4"><a href=""></a></span>
+<span id="cb4-5"><a href=""></a>topics <span class="op">=</span> [<span class="st">"AI regulation"</span>, <span class="st">"climate tech"</span>, <span class="st">"quantum computing"</span>]</span>
 <span id="cb4-6"><a href=""></a></span>
-<span id="cb4-7"><a href=""></a><span class="co"># 2. Bridge Approach (For synchronous legacy code)</span></span>
-<span id="cb4-8"><a href=""></a><span class="co"># Wrap blocking calls in a thread pool to avoid freezing the loop</span></span>
-<span id="cb4-9"><a href=""></a>loop <span class="op">=</span> asyncio.get_event_loop()</span>
-<span id="cb4-10"><a href=""></a>results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(</span>
-<span id="cb4-11"><a href=""></a>    <span class="op">*</span>[loop.run_in_executor(<span class="va">None</span>, <span class="va">self</span>._run_agent, t) <span class="cf">for</span> t <span class="kw">in</span> tasks]</span>
-<span id="cb4-12"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-7"><a href=""></a><span class="co"># List comprehension + gather = parallel calls</span></span>
+<span id="cb4-8"><a href=""></a>results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(</span>
+<span id="cb4-9"><a href=""></a>    <span class="op">*</span>[call_specialist(<span class="st">"researcher"</span>, topic) <span class="cf">for</span> topic <span class="kw">in</span> topics]</span>
+<span id="cb4-10"><a href=""></a>)</span>
+<span id="cb4-11"><a href=""></a></span>
+<span id="cb4-12"><a href=""></a><span class="co"># results = [findings_A, findings_B, findings_C] — order is preserved</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>The One Rule</strong></p>
+</div>
+<div class="callout-content">
+<p><code>await</code> is what enables parallelism. A function that never uses <code>await</code> <strong>blocks the entire event loop</strong> — all other tasks wait. Use <code>acompletion</code> (not <code>completion</code>).</p>
+</div>
+</div>
+</div>
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Async vs Sync</strong></p>
+<p><strong>Advanced: Blocking Libraries</strong></p>
 </div>
 <div class="callout-content">
-<p>Use native <code>await</code> for async agents. If you have <strong>synchronous operations</strong> (like <code>litellm.completion</code> or <code>requests</code>), you <strong>must use a thread pool</strong> via <code>run_in_executor</code> to keep the event loop alive.</p>
+<p>If you ever use a blocking library like <code>requests.get()</code>, wrap it: <code>await loop.run_in_executor(None, blocking_fn)</code>. In this course you won’t need this — <code>acompletion</code> is already async.</p>
 </div>
 </div>
 </div>

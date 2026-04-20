@@ -17,8 +17,8 @@ Click **Fork** in the top-right corner to create your own copy. This lets you pu
 
 ### 2. Clone Your Fork
 ```bash
-git clone https://github.com/YOUR_USERNAME/Building-Gen-AI-Apps-students.git
-cd Building-Gen-AI-Apps-students
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+cd YOUR_REPO_NAME
 ```
 
 ### 3. Set Up Your Environment

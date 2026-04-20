@@ -9,7 +9,7 @@
 <link href="01_genai_fundamentals_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.8.26">
 
-  <meta name="dcterms.date" content="2026-03-14">
+  <meta name="dcterms.date" content="2026-04-20">
   <title>Generative AI Fundamentals</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -204,7 +204,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-03-14</p>
+  <p class="date">2026-04-20</p>
 </section>
 <section>
 <section id="what-is-generative-ai" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
@@ -344,6 +344,25 @@
 </div>
 <div style="text-align: center; margin-top: 1em; font-size: 1.1em;">
 <p><em>The machine learned to finish sentences — nothing more.</em></p>
+</div>
+</section>
+<section id="generating-a-full-sentence" class="slide level2">
+<h2>Generating a Full Sentence</h2>
+<p>One word at a time. Step by step.</p>
+<p><strong>Prompt:</strong> <em>“The sky is”</em></p>
+<div style="font-family: monospace; font-size: 1em; line-height: 2.2;">
+<div class="fragment fade-in">
+<p><strong>Step 1 →</strong> <code>"The sky is"</code> ➜ <strong>blue</strong></p>
+</div>
+<div class="fragment fade-in">
+<p><strong>Step 2 →</strong> <code>"The sky is blue"</code> ➜ <strong>and</strong></p>
+</div>
+<div class="fragment fade-in">
+<p><strong>Step 3 →</strong> <code>"The sky is blue and"</code> ➜ <strong>clear</strong></p>
+</div>
+<div class="fragment fade-in">
+<p><strong>Step 4 →</strong> <code>"The sky is blue and clear"</code> ➜ <strong>[Finished]</strong> 🛑</p>
+</div>
 </div>
 </section>
 <section id="words-got-meaning-neural-lms" class="slide level2">
@@ -590,12 +609,12 @@
 </div>
 </div>
 <div style="text-align: center; margin-top: 0.8em; font-size: 1em; color: #9B8EC0;">
-<p><em>(Dashed = foreshadowed — we’ll complete this story in Section C)</em></p>
+<p><em>(Dashed = foreshadowed — we’ll complete this story in Section B)</em></p>
 </div>
 </section></section>
 <section>
-<section id="c.-the-chatgpt-revolution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>C. The ChatGPT Revolution</h1>
+<section id="b.-the-chatgpt-revolution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>B. The ChatGPT Revolution</h1>
 <p>How SFT turned completers into assistants</p>
 </section>
 <section id="the-problem-with-raw-completers" class="slide level2">
@@ -732,8 +751,8 @@ Across the hills where rivers flow...</code></pre>
 </div>
 </section></section>
 <section>
-<section id="d.-in-context-learning" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>D. In-Context Learning</h1>
+<section id="c.-in-context-learning" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>C. In-Context Learning</h1>
 <p>No retraining required — just better prompts</p>
 </section>
 <section id="the-insight-that-changed-everything" class="slide level2">
@@ -823,8 +842,8 @@ Sentiment:</code></pre>
 </div>
 </section></section>
 <section>
-<section id="e.-thinking-models" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>E. Thinking Models</h1>
+<section id="d.-thinking-models" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>D. Thinking Models</h1>
 <p>From chain of thought to o1 and beyond</p>
 </section>
 <section id="lets-think-step-by-step" class="slide level2">
@@ -833,22 +852,21 @@ Sentiment:</code></pre>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p><strong>Direct answer</strong></p>
-<pre><code>Q: Roger has 5 tennis balls.
-He buys 2 more cans of 3.
-How many does he have?
+<pre><code>Q: I have 10 riyals.
+I buy 2 coffees for 3 riyals each.
+How much money is left?
 
-A: 11</code></pre>
+A: 7 riyals</code></pre>
 <p>Wrong. (The model guessed.)</p>
 </div><div class="column" style="width:50%;">
 <p><strong>With Chain of Thought</strong></p>
-<pre><code>Q: Roger has 5 tennis balls.
-He buys 2 more cans of 3.
-How many does he have?
+<pre><code>Q: I have 10 riyals.
+I buy 2 coffees for 3 riyals each.
+How much money is left?
 Let's think step by step.
 
-A: He starts with 5.
-2 cans × 3 balls = 6 more.
-5 + 6 = 11.</code></pre>
+A: 2 coffees × 3 riyals = 6.
+10 - 6 = 4 riyals.</code></pre>
 <p>Correct — and verifiable.</p>
 </div></div>
 </section>
@@ -1017,25 +1035,12 @@ A: He starts with 5.
 </div>
 </div>
 </section>
-<section id="generating-a-full-sentence" class="slide level2">
-<h2>Generating a Full Sentence</h2>
-<p>One token at a time. Step by step.</p>
-<p><strong>Prompt:</strong> <em>“The sky is”</em></p>
+<section id="tokens-in-action-the-stop-token" class="slide level2">
+<h2>Tokens in Action: The Stop Token</h2>
+<p>Remember the generation loop? In modern LLMs, the model doesn’t predict “finished” — it predicts a specific <strong>Stop Token</strong>.</p>
 <div style="font-family: monospace; font-size: 1em; line-height: 2.2;">
-<div class="fragment fade-in">
-<p><strong>Step 1 →</strong> <code>"The sky is"</code> ➜ <strong>blue</strong></p>
-</div>
-<div class="fragment fade-in">
-<p><strong>Step 2 →</strong> <code>"The sky is blue"</code> ➜ <strong>and</strong></p>
-</div>
-<div class="fragment fade-in">
-<p><strong>Step 3 →</strong> <code>"The sky is blue and"</code> ➜ <strong>clear</strong></p>
-</div>
-<div class="fragment fade-in">
 <p><strong>Step 4 →</strong> <code>"The sky is blue and clear"</code> ➜ <strong><code>&lt;EOS&gt;</code></strong> 🛑</p>
 </div>
-</div>
-<div class="fragment fade-in">
 <div class="callout callout-important callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -1046,7 +1051,6 @@ A: He starts with 5.
 </div>
 <div class="callout-content">
 <p><code>&lt;EOS&gt;</code> (End of Sequence) is a <strong>special token</strong> in the vocabulary. When the model picks it, generation halts. Without it, the model would keep predicting forever. Every sentence you’ve ever received from an LLM ended because of this token.</p>
-</div>
 </div>
 </div>
 </div>
@@ -1113,7 +1117,7 @@ A: He starts with 5.
 <p>The model doesn’t “know” facts; it calculates <strong>probabilities</strong>.</p>
 <div class="columns">
 <div class="column" style="width:60%;">
-<p><strong>“According to Article 214 of the…”</strong></p>
+<p><strong>“According to Article 214 of …”</strong></p>
 <ul>
 <li><strong>The</strong> (45%)</li>
 <li><strong>Foreign</strong> (30%)</li>
@@ -1389,7 +1393,7 @@ A: He starts with 5.
 <tr class="odd">
 <td><strong>RAG</strong></td>
 <td>Ground responses in retrieved documents</td>
-<td>Most enterprise apps (Module 03)</td>
+<td>Most enterprise apps (Module 04)</td>
 </tr>
 <tr class="even">
 <td><strong>Output Validation</strong></td>
