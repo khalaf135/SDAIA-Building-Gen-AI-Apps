@@ -53,7 +53,7 @@ class AdvancedLoopDetector:
             if (past_tool, past_input.strip()) == current
         )
 
-        if exact_count >= self.exact_threshold:
+        if exact_count >= self.exact_threshold - 1:
             self.tool_history.append(current)
             return LoopDetectionResult(
                 is_looping=True,
@@ -75,7 +75,7 @@ class AdvancedLoopDetector:
                 if similarity >= self.fuzzy_threshold:
                     fuzzy_matches += 1
 
-        if fuzzy_matches >= self.exact_threshold:
+        if fuzzy_matches >= self.exact_threshold - 1:
             self.tool_history.append(current)
             return LoopDetectionResult(
                 is_looping=True,

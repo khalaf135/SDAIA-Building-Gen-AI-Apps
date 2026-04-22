@@ -20,12 +20,14 @@ def research(
     max_steps: int = typer.Option(settings.max_steps, help="Max ReAct steps."),
 ):
     """Run the AI research agent on a query."""
-    # TODO:
-    # 1. resolved_model = model or settings.model_name
-    # 2. agent = OrchestratorAgent(model=resolved_model, max_steps=max_steps)
-    # 3. result = asyncio.run(agent.run(query))
-    # 4. print(result["answer"])
-    print("Not implemented yet. Complete the TODO above.")
+    resolved_model = model or settings.model_name
+    agent = OrchestratorAgent(model=resolved_model, max_steps=max_steps)
+    
+    print(f"Starting research with model: {resolved_model}...")
+    result = asyncio.run(agent.run(query))
+    
+    print("\n--- FINAL REPORT ---\n")
+    print(result.get("answer", "No answer returned."))
 
 
 if __name__ == "__main__":

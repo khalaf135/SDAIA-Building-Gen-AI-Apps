@@ -26,16 +26,17 @@ def get_api_token():
 
 
 def query_model(model_id: str, prompt: str, token: str, max_retries: int = 3) -> dict:
-    """Query a Hugging Face model with retry logic. Returns response + timing."""
-    url = f"https://api-inference.huggingface.co/models/{model_id}"
-    headers = {"Authorization": f"Bearer {token}"}
+    """Query a Hugging Face model via the new Inference Providers API."""
+    url = "https://router.huggingface.co/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
     payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 200,
-            "temperature": 0.7,
-            "return_full_text": False,
-        },
+        "model": model_id,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 200,
+        "temperature": 0.7,
     }
 
     start_time = time.time()
@@ -46,13 +47,8 @@ def query_model(model_id: str, prompt: str, token: str, max_retries: int = 3) ->
             if response.status_code == 200:
                 elapsed = time.time() - start_time
                 result = response.json()
-                text = result[0].get("generated_text", str(result))
+                text = result["choices"][0]["message"]["content"]
                 return {"text": text, "latency_s": round(elapsed, 2), "status": "ok"}
-            if response.status_code == 503:
-                wait = response.json().get("estimated_time", 30)
-                print(f"  Model loading... waiting {wait:.0f}s")
-                time.sleep(min(wait, 60))
-                continue
             if response.status_code == 429:
                 time.sleep(5 * (2 ** attempt))
                 continue
@@ -66,15 +62,13 @@ def query_model(model_id: str, prompt: str, token: str, max_retries: int = 3) ->
     elapsed = time.time() - start_time
     return {"text": "Failed after retries", "latency_s": round(elapsed, 2), "status": "error"}
 
-
 # =====================================================================
 # CONFIGURE YOUR BAKE-OFF BELOW
 # =====================================================================
 
 MODELS = [
-    "mistralai/Mistral-7B-Instruct-v0.3",
-    "HuggingFaceH4/zephyr-7b-beta",
-    "google/flan-t5-large",
+    "meta-llama/Llama-3.1-8B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
 ]
 
 # TODO: Replace these with your own prompts

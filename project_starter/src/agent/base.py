@@ -184,8 +184,107 @@ class BaseAgent:
                 }
             }
         """
-        # TODO: Remove this line and implement the steps above.
-        raise NotImplementedError(
-            "Implement the ReAct loop in BaseAgent.run(). "
-            "Follow the step-by-step docstring above."
+        self._current_trace_id = self.tracer.start_trace(
+            agent_name=self.agent_name,
+            query=user_query,
+            model=self.model
         )
+        self.loop_detector.reset()
+
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": user_query}
+        ]
+
+        answer = ""
+        total_steps = 0
+        status = "success"
+        error_msg = None
+
+        try:
+            for step in range(1, self.max_steps + 1):
+                total_steps = step
+                self._on_step_start(step, messages)
+                
+                step_start_time = time.time()
+                
+                response = await acompletion(
+                    model=self.model,
+                    messages=messages,
+                    tools=self.tools_schema if self.tools_schema else None,
+                    max_tokens=2000,
+                )
+                
+                step_duration_ms = (time.time() - step_start_time) * 1000
+                message = response.choices[0].message
+                
+                message_dict = message.model_dump(exclude_none=True) if hasattr(message, "model_dump") else dict(message)
+                messages.append(message_dict)
+                
+                content = message.content or ""
+                
+                if content:
+                    loop_check = self.loop_detector.check_output_stagnation(content)
+                    if loop_check.is_looping:
+                        logger.warning("stagnation_detected", message=loop_check.message)
+                        messages.append({"role": "system", "content": loop_check.message})
+                
+                tool_calls = getattr(message, "tool_calls", None)
+                
+                if not tool_calls:
+                    answer = content
+                    self._on_step_end(step, response, [], step_duration_ms)
+                    break
+                
+                # Execute tools in parallel
+                async def execute_and_measure(tc):
+                    t_start = time.time()
+                    name = tc.function.name
+                    try:
+                        args = json.loads(tc.function.arguments)
+                    except json.JSONDecodeError:
+                        args = {}
+                    result = await self._execute_tool(name, args)
+                    dur_ms = (time.time() - t_start) * 1000
+                    self._on_tool_result(step, name, args, result, dur_ms)
+                    return {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "name": name,
+                        "content": str(result)
+                    }, (name, args, result, dur_ms)
+
+                tasks = [execute_and_measure(tc) for tc in tool_calls]
+                results = await asyncio.gather(*tasks)
+                
+                tool_messages = [res[0] for res in results]
+                tool_records = [res[1] for res in results]
+                
+                messages.extend(tool_messages)
+                self._on_step_end(step, response, tool_records, step_duration_ms)
+            else:
+                answer = content if content else "Max steps reached without a final answer."
+                status = "max_steps_reached"
+                
+        except Exception as e:
+            error_msg = str(e)
+            status = "error"
+            answer = f"Agent failed with error: {e}"
+            logger.exception("agent_run_failed")
+            
+        finally:
+            self._on_loop_end(
+                answer=answer,
+                total_steps=total_steps,
+                status=status,
+                error=error_msg
+            )
+            
+        return {
+            "answer": answer,
+            "metadata": {
+                "trace_id": self._current_trace_id,
+                "total_steps": total_steps,
+                "status": status
+            }
+        }

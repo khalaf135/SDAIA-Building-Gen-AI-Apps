@@ -39,35 +39,43 @@ class OrchestratorAgent:
     """
 
     def __init__(self, model: str = None, max_steps: int = 10):
-        # TODO: Initialize the sub-agents you want to use.
-        #
-        # Example — a simple researcher:
-        #
-        #   resolved_model = model or settings.model_name
-        #
-        #   self.researcher = BaseAgent(
-        #       model=resolved_model,
-        #       max_steps=max_steps,
-        #       agent_name="Researcher",
-        #       system_prompt=RESEARCHER_PROMPT,
-        #   )
-        # You can add as many agents as you like.
-        pass
+        resolved_model = model or settings.model_name
+        
+        self.researcher = BaseAgent(
+            model=resolved_model,
+            max_steps=max_steps,
+            agent_name="Researcher",
+            system_prompt=RESEARCHER_PROMPT,
+        )
+        
+        self.writer = BaseAgent(
+            model=resolved_model,
+            max_steps=max_steps,
+            agent_name="Writer",
+            system_prompt=WRITER_PROMPT,
+        )
 
     async def run(self, query: str) -> dict:
-        # TODO: Implement your orchestration strategy.
-        #
-        # Example — sequential chain:
-        #
-        #   research_result = await self.researcher.run(query)
-        #   research_output = research_result["answer"]
-        #
-        #   return {
-        #       "answer": research_output["answer"],
-        #       "metadata": {
-        #           "researcher_trace": research_result["metadata"].get("trace_id"),
-        #       },
-        #   }
-        #
-        # Return {"answer": "...", "metadata": {...}} when done.
-        pass
+        # 1. Research
+        research_result = await self.researcher.run(query)
+        research_findings = research_result.get("answer", "")
+        
+        # 2. Write based on findings
+        writer_query = (
+            f"Original User Request: {query}\n\n"
+            f"Research Findings:\n{research_findings}\n\n"
+            f"Please write a comprehensive report."
+        )
+        writer_result = await self.writer.run(writer_query)
+        
+        return {
+            "answer": writer_result.get("answer", ""),
+            "metadata": {
+                "researcher_trace": research_result.get("metadata", {}).get("trace_id"),
+                "writer_trace": writer_result.get("metadata", {}).get("trace_id"),
+                "total_steps": (
+                    research_result.get("metadata", {}).get("total_steps", 0) + 
+                    writer_result.get("metadata", {}).get("total_steps", 0)
+                )
+            }
+        }
